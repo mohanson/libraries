@@ -11,7 +11,7 @@ class MemDriver:
     # mechanism, be careful that it might eats up all your memory.
 
     def __init__(self) -> None:
-        self.data = {}
+        self.data: typing.Dict[str, bytearray] = {}
 
     def __contains__(self, key: str) -> bool:
         return key in self.data
@@ -25,10 +25,10 @@ class MemDriver:
     def __setitem__(self, key: str, value: bytearray) -> None:
         self.data[key] = value
 
-    def get(self, key: str, default=None) -> bytearray:
+    def get(self, key: str, default=None) -> typing.Optional[bytearray]:
         return self.data.get(key, default)
 
-    def pop(self, key: str, default=None) -> bytearray:
+    def pop(self, key: str, default=None) -> typing.Optional[bytearray]:
         return self.data.pop(key, default)
 
 
@@ -55,12 +55,12 @@ class DocDriver:
         with open(os.path.join(self.root, key), 'wb') as f:
             f.write(value)
 
-    def get(self, key: str, default=None) -> bytearray:
+    def get(self, key: str, default=None) -> typing.Optional[bytearray]:
         with contextlib.suppress(Exception):
             return self[key]
         return default
 
-    def pop(self, key: str, default=None) -> bytearray:
+    def pop(self, key: str, default=None) -> typing.Optional[bytearray]:
         with contextlib.suppress(Exception):
             value = self[key]
             del self[key]
@@ -95,12 +95,12 @@ class LruDriver:
             self.data.popitem(False)
         self.data[key] = value
 
-    def get(self, key: str, default=None) -> bytearray:
+    def get(self, key: str, default=None) -> typing.Optional[bytearray]:
         with contextlib.suppress(Exception):
             return self[key]
         return default
 
-    def pop(self, key: str, default=None) -> bytearray:
+    def pop(self, key: str, default=None) -> typing.Optional[bytearray]:
         return self.data.pop(key, default)
 
 
@@ -131,12 +131,12 @@ class MapDriver:
         self.lru_driver[key] = value
         self.doc_driver[key] = value
 
-    def get(self, key: str, default=None) -> bytearray:
+    def get(self, key: str, default=None) -> typing.Optional[bytearray]:
         with contextlib.suppress(KeyError):
             return self[key]
         return default
 
-    def pop(self, key: str, default=None) -> bytearray:
+    def pop(self, key: str, default=None) -> typing.Optional[bytearray]:
         with contextlib.suppress(Exception):
             value = self[key]
             del self[key]
@@ -165,7 +165,7 @@ class Emerge:
 
     def __setitem__(self, key: str, value: typing.Any) -> None:
         with self.lock:
-            self.driver[key] = json.dumps(value).encode()
+            self.driver[key] = bytearray(json.dumps(value).encode())
 
     def get(self, key: str, default=None) -> typing.Any:
         with self.lock:
