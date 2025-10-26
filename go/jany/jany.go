@@ -58,6 +58,13 @@ func (j *Jany) Get(k string) *Jany {
 	return &Jany{j: a[k]}
 }
 
+// Has checks if the key k exists in the current Jany instance.
+func (j *Jany) Has(k string) bool {
+	a := j.j.(map[string]any)
+	_, ok := a[k]
+	return ok
+}
+
 // Idx returns the Jany[i].
 func (j *Jany) Idx(k int) *Jany {
 	a := j.j.([]any)
