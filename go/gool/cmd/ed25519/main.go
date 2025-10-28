@@ -36,7 +36,6 @@ func once() {
 		prikey := ed25519.NewKeyFromSeed(prikeySrc)
 		pubkey := prikey.Public().(ed25519.PublicKey)
 		pubkeyHex := hex.EncodeToString(pubkey)
-		log.Println(pubkeyHex)
 		if _, win := aimpub[pubkeyHex]; win {
 			log.Panicln("main: done", fmt.Sprintf("prikey=%s", hex.EncodeToString(prikey)))
 		}
