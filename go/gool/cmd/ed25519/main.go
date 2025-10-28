@@ -11,6 +11,8 @@ import (
 	"github.com/mohanson/libraries/go/gool"
 )
 
+// There are the top 10 public keys on the solana blockchain. This program tries to find their corresponding private
+// keys by brute force.
 var aimpub map[string]uint8 = map[string]uint8{
 	"7e8c088760bfde1dddcf32c17f209b8242ee52aaf131facd88d0ea2c6d0b06f2": 1,
 	"649999ced9a400a9a42aabd361def70587997f519731abdee3e17d70ebaceafa": 1,
