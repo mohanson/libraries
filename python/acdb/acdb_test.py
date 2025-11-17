@@ -1,8 +1,8 @@
-import libraries.acdb
+import acdb
 
 
 def test_acdb_emerge_lru_driver_append():
-    c = libraries.acdb.Emerge(libraries.acdb.LruDriver(4))
+    c = acdb.Emerge(acdb.LruDriver(4))
     c['1'] = 1
     c['2'] = 2
     c['3'] = 3
@@ -13,7 +13,7 @@ def test_acdb_emerge_lru_driver_append():
 
 
 def test_acdb_emerge_lru_driver_change():
-    c = libraries.acdb.Emerge(libraries.acdb.LruDriver(4))
+    c = acdb.Emerge(acdb.LruDriver(4))
     c['1'] = 1
     c['2'] = 2
     c['3'] = 3
@@ -23,7 +23,7 @@ def test_acdb_emerge_lru_driver_change():
 
 
 def test_acdb_emerge_lru_driver_delete():
-    c = libraries.acdb.Emerge(libraries.acdb.LruDriver(4))
+    c = acdb.Emerge(acdb.LruDriver(4))
     c['1'] = 1
     c['2'] = 2
     c['3'] = 3
