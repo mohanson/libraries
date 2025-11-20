@@ -96,6 +96,6 @@ func (l *LimitsWriter) Write(p []byte) (int, error) {
 }
 
 // NewLimitsWriter creates a new LimitsWriter that limits write operations to r bytes per period p.
-func NewLimitsWriter(r uint64, p time.Duration) *LimitsWriter {
-	return &LimitsWriter{li: NewLimits(r, p)}
+func NewLimitsWriter(limits *Limits) *LimitsWriter {
+	return &LimitsWriter{li: limits}
 }
