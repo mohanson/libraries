@@ -1,0 +1,25 @@
+name: develop
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  develop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.14'
+      - name: Test
+        run: |
+          cd ${{ github.workspace }}/go
+          go test -v ./...
+          cd ${{ github.workspace }}/python
+          pip install pytest
+          pytest -v
+          cd ${{ github.workspace }}
