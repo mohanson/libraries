@@ -22,4 +22,6 @@ jobs:
           cd ${{ github.workspace }}/python
           pip install pytest
           pytest -v
+          cd ${{ github.workspace }}/rust
+          cargo test
           cd ${{ github.workspace }}
