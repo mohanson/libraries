@@ -12,7 +12,7 @@ use core::ptr::addr_of_mut;
 
 pub const MIN_BLOCK: usize = 64;
 pub const MAX_ORDER: usize = 14;
-pub const MAX_TOTAL: usize = 1024 * 1024;
+pub const MAX_TOTAL: usize = MIN_BLOCK * (1 << MAX_ORDER);
 pub const PTR_ALLOC: *mut u8 = addr_of_mut!(PRE_ALLOC) as *mut u8;
 pub static mut FREE_LIST: [usize; MAX_ORDER + 1] = {
     let mut list = [usize::MAX; MAX_ORDER + 1];
@@ -42,7 +42,9 @@ pub struct Algorithm;
 /// Information about allocated memory blocks.
 #[derive(Clone, Copy)]
 pub struct Blockinfo {
+    /// Offset of the allocated block within the memory pool.
     pub offset: usize,
+    /// Length of the allocated block.
     pub length: usize,
 }
 
@@ -110,11 +112,13 @@ impl Algorithm {
     }
 }
 
+/// Global allocator struct that uses the buddy allocation algorithm.
 pub struct Allocator {
     inner: UnsafeCell<Algorithm>,
 }
 
 impl Allocator {
+    /// Creates a new global allocator instance.
     pub const fn global() -> Self {
         Allocator { inner: UnsafeCell::new(Algorithm {}) }
     }
