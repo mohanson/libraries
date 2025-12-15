@@ -154,14 +154,7 @@ fn clp2(n: usize) -> usize {
 }
 
 fn log2(m: usize, n: usize) -> usize {
-    let mut m = m;
-    for i in 0..64 {
-        if m == n {
-            return i;
-        }
-        m <<= 1;
-    }
-    unreachable!()
+    n.next_power_of_two().trailing_zeros() as usize - m.trailing_zeros() as usize
 }
 
 fn uldr(p: *mut u8) -> usize {

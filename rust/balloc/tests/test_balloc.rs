@@ -14,11 +14,11 @@ pub struct Knowledge {
     pub layout: Layout,
 }
 
-fn main() {
+#[test]
+fn test_fuzz() {
     unsafe {
         let allocator = Allocator::global();
         let mut vk: Vec<Knowledge> = vec![];
-        println!("main: fuzz");
         for _ in 0..1024 * 1024 {
             let action_random = rand() as usize % 1024;
             let action = if vk.len() > action_random { 1 } else { 0 };
@@ -36,7 +36,6 @@ fn main() {
                 _ => unreachable!(),
             }
         }
-        println!("main: fuzz free {} knowledge", vk.len());
         for knowledge in vk.drain(..) {
             allocator.dealloc(knowledge.ptr, knowledge.layout);
         }
@@ -45,6 +44,5 @@ fn main() {
             assert_eq!(FREE_LIST[i], usize::MAX);
         }
         assert_eq!(FREE_LIST[MAX_ORDER], 0);
-        println!("main: fuzz done");
     }
 }
