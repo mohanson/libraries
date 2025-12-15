@@ -130,6 +130,9 @@ unsafe impl GlobalAlloc for Allocator {
             let inner = &mut *self.inner.get();
             let order = log2(MIN_BLOCK, clp2(layout.size()).max(MIN_BLOCK));
             let block = inner.alloc(order);
+            if block.offset == usize::MAX {
+                return core::ptr::null_mut();
+            }
             PTR_ALLOC.add(block.offset)
         }
     }
