@@ -24,7 +24,7 @@ fn main() {
             let action = if vk.len() > action_random { 1 } else { 0 };
             match action {
                 0 => {
-                    let layout = Layout::from_size_align(rand() as usize % 4096, 1).unwrap();
+                    let layout = Layout::from_size_align(rand() as usize % 2048, 1).unwrap();
                     let ptr = allocator.alloc(layout);
                     vk.push(Knowledge { ptr, layout });
                 }
