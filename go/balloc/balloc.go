@@ -14,23 +14,35 @@ import (
 // a block of the appropriate size. When memory is freed, it attempts to merge adjacent buddy blocks back together to
 // reduce fragmentation.
 
-// Buddy allocation algorithm implementation.
+// Algorithm implements the core buddy allocation algorithm. It manages a memory pool by maintaining free lists for
+// different block sizes.
 type Algorithm struct {
+	// FreeList maintains linked lists of free blocks for each order (size).
+	// Each index represents blocks of size MinBlock * 2^index.
 	FreeList []int
+	// MaxOrder is the maximum order (size class) available, calculated as log2(MaxTotal/MinBlock).
 	MaxOrder int
+	// MaxTotal is the total size of the memory pool in bytes.
 	MaxTotal int
+	// MinBlock is the minimum allocation unit size in bytes.
 	MinBlock int
+	// PreAlloc is the pre-allocated memory pool that the allocator manages.
 	PreAlloc []byte
 }
 
-// Information about allocated memory blocks.
+// Blockinfo contains information about allocated memory blocks.
+// It describes the location and size of a block within the memory pool.
 type Blockinfo struct {
-	// Offset of the allocated block within the memory pool.
+	// Offset is the starting position of the allocated block within the memory pool.
 	Offset int
-	// Length of the allocated block.
+	// Length is the size of the allocated block in bytes.
 	Length int
 }
 
+// Alloc allocates a memory block of the specified order.
+// The order parameter determines the block size as MinBlock * 2^order.
+// Returns a Blockinfo with Offset=-1 if allocation fails.
+// If no block of the requested order is available, it recursively splits larger blocks.
 func (b *Algorithm) Alloc(order int) Blockinfo {
 	if order > b.MaxOrder {
 		return Blockinfo{Offset: -1, Length: 0}
@@ -58,6 +70,8 @@ func (b *Algorithm) Alloc(order int) Blockinfo {
 	}
 }
 
+// Close frees a memory block and attempts to merge it with its buddy. This implements the buddy merging logic: when
+// both buddies are free, they are merged into a larger block at the next order level.
 func (b *Algorithm) Close(block Blockinfo) {
 	order := log2(b.MinBlock, block.Length)
 	blockOffset := block.Offset
@@ -89,12 +103,15 @@ func (b *Algorithm) Close(block Blockinfo) {
 	}
 }
 
-// Buddy allocation.
+// Allocator is a thread-safe wrapper around the buddy allocation algorithm. It provides synchronized access to the
+// underlying Algorithm for concurrent use.
 type Allocator struct {
 	Inner *Algorithm
 	Mutex *sync.Mutex
 }
 
+// Alloc allocates a byte slice of the requested size from the memory pool. If the pool is exhausted, it falls back to
+// heap allocation. This method is thread-safe.
 func (b *Allocator) Alloc(size int) []byte {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
@@ -107,6 +124,9 @@ func (b *Allocator) Alloc(size int) []byte {
 	return b.Inner.PreAlloc[block.Offset : block.Offset+size]
 }
 
+// Close returns a previously allocated byte slice back to the memory pool. The slice must have been allocated by this
+// Allocator's Alloc method. If the slice is not from this pool (e.g., heap-allocated fallback), it's safely ignored.
+// This method is thread-safe.
 func (b *Allocator) Close(data []byte) {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
@@ -146,7 +166,8 @@ func npo2(n int) int {
 	return 1 << (bits.Len(uint(n - 1)))
 }
 
-// New creates a new buddy allocator.
+// New creates a new buddy allocator with the specified parameters. Parameter minBlock is the minimum allocation unit
+// size (must be a power of 2). Parameter maxTotal is the total memory pool size (must be a power of 2).
 func New(minBlock int, maxTotal int) *Allocator {
 	if !isp2(minBlock) {
 		log.Panicln("balloc: max block is not a power of 2")
