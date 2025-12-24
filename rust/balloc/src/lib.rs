@@ -6,7 +6,6 @@
 //! reduce fragmentation.
 
 use core::alloc::{GlobalAlloc, Layout};
-use core::cell::UnsafeCell;
 use core::cmp::min;
 use core::ptr::addr_of_mut;
 
@@ -49,7 +48,7 @@ pub struct Blockinfo {
 }
 
 impl Algorithm {
-    pub fn alloc(&mut self, order: usize) -> Blockinfo {
+    pub fn alloc(order: usize) -> Blockinfo {
         unsafe {
             if order > MAX_ORDER {
                 let block_offset = usize::MAX;
@@ -62,7 +61,7 @@ impl Algorithm {
                 FREE_LIST[order] = uldr(block_ptr);
                 return Blockinfo { offset: block_offset, length: block_size };
             }
-            let block = self.alloc(order + 1);
+            let block = Algorithm::alloc(order + 1);
             let block_offset = block.offset;
             if block_offset == usize::MAX {
                 return Blockinfo { offset: block_offset, length: 0 };
@@ -75,7 +74,24 @@ impl Algorithm {
         }
     }
 
-    pub fn close(&mut self, block: Blockinfo) {
+    pub fn avail() -> usize {
+        unsafe {
+            let mut s = 0;
+            for order in 0..=MAX_ORDER {
+                let mut n = FREE_LIST[order];
+                loop {
+                    if n == usize::MAX {
+                        break;
+                    }
+                    s += MIN_BLOCK << order;
+                    n = uldr(PTR_ALLOC.add(n));
+                }
+            }
+            s
+        }
+    }
+
+    pub fn close(block: Blockinfo) {
         unsafe {
             if block.offset == usize::MAX {
                 return;
@@ -98,12 +114,12 @@ impl Algorithm {
                 m = uldr(PTR_ALLOC.add(n));
                 if n == buddy.offset {
                     FREE_LIST[order] = m;
-                    self.close(upper);
+                    Algorithm::close(upper);
                     break;
                 }
                 if m == buddy.offset {
                     ustr(PTR_ALLOC.add(n), uldr(PTR_ALLOC.add(m)));
-                    self.close(upper);
+                    Algorithm::close(upper);
                     break;
                 }
                 n = m;
@@ -113,23 +129,19 @@ impl Algorithm {
 }
 
 /// Global allocator struct that uses the buddy allocation algorithm.
-pub struct Allocator {
-    inner: UnsafeCell<Algorithm>,
-}
+pub struct Allocator {}
 
 impl Allocator {
-    /// Creates a new global allocator instance.
-    pub const fn global() -> Self {
-        Allocator { inner: UnsafeCell::new(Algorithm {}) }
+    pub fn avail() -> usize {
+        Algorithm::avail()
     }
 }
 
 unsafe impl GlobalAlloc for Allocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         unsafe {
-            let inner = &mut *self.inner.get();
             let order = log2(MIN_BLOCK, clp2(layout.size()).max(MIN_BLOCK));
-            let block = inner.alloc(order);
+            let block = Algorithm::alloc(order);
             if block.offset == usize::MAX {
                 return core::ptr::null_mut();
             }
@@ -139,10 +151,9 @@ unsafe impl GlobalAlloc for Allocator {
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
         unsafe {
-            let inner = &mut *self.inner.get();
             let order = log2(MIN_BLOCK, clp2(layout.size()).max(MIN_BLOCK));
             let block = Blockinfo { offset: ptr.offset_from(PTR_ALLOC) as usize, length: MIN_BLOCK << order };
-            inner.close(block);
+            Algorithm::close(block);
         }
     }
 }
