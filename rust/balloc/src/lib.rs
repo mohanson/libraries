@@ -131,12 +131,6 @@ impl Algorithm {
 /// Global allocator struct that uses the buddy allocation algorithm.
 pub struct Allocator {}
 
-impl Allocator {
-    pub fn avail() -> usize {
-        Algorithm::avail()
-    }
-}
-
 unsafe impl GlobalAlloc for Allocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         unsafe {

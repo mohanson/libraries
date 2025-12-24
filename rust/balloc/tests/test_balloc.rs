@@ -1,4 +1,4 @@
-use balloc::{Allocator, FREE_LIST, MAX_ORDER, MAX_TOTAL};
+use balloc::{Algorithm, Allocator, FREE_LIST, MAX_ORDER, MAX_TOTAL};
 use std::alloc::{GlobalAlloc, Layout};
 
 static mut RANDSEED: u64 = 0;
@@ -44,6 +44,6 @@ fn test_fuzz() {
             assert_eq!(FREE_LIST[i], usize::MAX);
         }
         assert_eq!(FREE_LIST[MAX_ORDER], 0);
-        assert_eq!(Allocator::avail(), MAX_TOTAL)
+        assert_eq!(Algorithm::avail(), MAX_TOTAL)
     }
 }
