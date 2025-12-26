@@ -39,4 +39,7 @@ func TestFuzz(t *testing.T) {
 	if balloc.Inner.FreeList[balloc.Inner.MaxOrder] != 0 {
 		t.FailNow()
 	}
+	if balloc.Avail() != maxTotal {
+		t.FailNow()
+	}
 }

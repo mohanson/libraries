@@ -17,8 +17,8 @@ import (
 // Algorithm implements the core buddy allocation algorithm. It manages a memory pool by maintaining free lists for
 // different block sizes.
 type Algorithm struct {
-	// FreeList maintains linked lists of free blocks for each order (size).
-	// Each index represents blocks of size MinBlock * 2^index.
+	// FreeList maintains linked lists of free blocks for each order (size). Each index represents blocks of size
+	// MinBlock * 2^index.
 	FreeList []int
 	// MaxOrder is the maximum order (size class) available, calculated as log2(MaxTotal/MinBlock).
 	MaxOrder int
@@ -30,8 +30,8 @@ type Algorithm struct {
 	PreAlloc []byte
 }
 
-// Blockinfo contains information about allocated memory blocks.
-// It describes the location and size of a block within the memory pool.
+// Blockinfo contains information about allocated memory blocks. It describes the location and size of a block within
+// the memory pool.
 type Blockinfo struct {
 	// Offset is the starting position of the allocated block within the memory pool.
 	Offset int
@@ -39,10 +39,9 @@ type Blockinfo struct {
 	Length int
 }
 
-// Alloc allocates a memory block of the specified order.
-// The order parameter determines the block size as MinBlock * 2^order.
-// Returns a Blockinfo with Offset=-1 if allocation fails.
-// If no block of the requested order is available, it recursively splits larger blocks.
+// Alloc allocates a memory block of the specified order. The order parameter determines the block size as
+// MinBlock * 2^order. Returns a Blockinfo with Offset=-1 if allocation fails. If no block of the requested order is
+// available, it recursively splits larger blocks.
 func (b *Algorithm) Alloc(order int) Blockinfo {
 	if order > b.MaxOrder {
 		return Blockinfo{Offset: -1, Length: 0}
@@ -68,6 +67,22 @@ func (b *Algorithm) Alloc(order int) Blockinfo {
 		Offset: block.Offset,
 		Length: blockSize,
 	}
+}
+
+// Avail calculates the total available memory in the pool by summing the sizes of all free blocks across all orders.
+func (b *Algorithm) Avail() int {
+	s := 0
+	for order := 0; order <= b.MaxOrder; order++ {
+		n := b.FreeList[order]
+		for {
+			if n == -1 {
+				break
+			}
+			s += b.MinBlock << order
+			n = ildr(b.PreAlloc, n)
+		}
+	}
+	return s
 }
 
 // Close frees a memory block and attempts to merge it with its buddy. This implements the buddy merging logic: when
@@ -122,6 +137,13 @@ func (b *Allocator) Alloc(size int) []byte {
 		return make([]byte, size)
 	}
 	return b.Inner.PreAlloc[block.Offset : block.Offset+size]
+}
+
+// Avail returns the total available memory in the pool. This method is thread-safe.
+func (b *Allocator) Avail() int {
+	b.Mutex.Lock()
+	defer b.Mutex.Unlock()
+	return b.Inner.Avail()
 }
 
 // Close returns a previously allocated byte slice back to the memory pool. The slice must have been allocated by this
