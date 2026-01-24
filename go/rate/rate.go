@@ -3,8 +3,6 @@
 package rate
 
 import (
-	"log"
-	"math"
 	"sync"
 	"time"
 )
@@ -28,20 +26,14 @@ func (l *Limits) Wait(n uint64) {
 		l.last = curr
 	}
 	diff := curr.Sub(l.last)
-	cycles := uint64(diff / l.step)
-	if cycles > 0 {
+	if diff > l.step {
+		cycles := uint64(diff / l.step)
 		l.last = l.last.Add(l.step * time.Duration(cycles))
-		if cycles > math.MaxUint64/l.addition {
-			log.Panicln("rate: overflow")
-		}
-		if l.size > math.MaxUint64-l.addition*cycles {
-			log.Panicln("rate: overflow")
-		}
 		l.size = l.size + l.addition*cycles
 		l.size = min(l.size, l.capacity)
 	}
 	if l.size < n {
-		cycles = (n - l.size + l.addition - 1) / l.addition
+		cycles := (n - l.size + l.addition - 1) / l.addition
 		time.Sleep(l.step * time.Duration(cycles))
 		l.last = l.last.Add(l.step * time.Duration(cycles))
 		l.size = l.size + l.addition*cycles
@@ -54,8 +46,8 @@ func (l *Limits) Wait(n uint64) {
 // Overflow warning:
 // If the rate r is set to a very large value (e.g., 1G = 1024 * 1024 * 1024) and the period (p) is one second, the
 // internal counters may overflow after approximately 544 years. However, this overflow only occurs if the limiter
-// remains completely idle (i.e., neither peek nor wait is called) for the entire duration. Consider this when designing
-// long-running systems with very high rates.
+// remains completely idle for the entire duration. Consider this when designing long-running systems with very high
+// rates.
 func NewLimits(r uint64, p time.Duration) *Limits {
 	gcd := func(a, b uint64) uint64 {
 		t := uint64(0)
@@ -80,11 +72,11 @@ func NewLimits(r uint64, p time.Duration) *Limits {
 //
 // For example, to limit a reader's read speed to 1MB/s:
 //
-//	reader := io.TeeReader(os.Stdin, NewLimitsWriter(1024*1024, time.Second))
+//	reader := io.TeeReader(os.Stdin, NewLimitsWriter(NewLimits(1024*1024, time.Second)))
 //
 // Or, to limit a writer's write speed to 1MB/s:
 //
-//	writer := io.MultiWriter(os.Stdout, NewLimitsWriter(1024*1024, time.Second))
+//	writer := io.MultiWriter(os.Stdout, NewLimitsWriter(NewLimits(1024*1024, time.Second)))
 type LimitsWriter struct {
 	li *Limits
 }
