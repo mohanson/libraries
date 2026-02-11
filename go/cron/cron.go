@@ -18,7 +18,8 @@ func Cron(e time.Duration, d time.Duration) <-chan struct{} {
 		for {
 			n := time.Now()
 			// Wait for the next scheduled event by adding the elapsed time and then waiting for the delay.
-			time.Sleep(n.Add(e).Truncate(e).Sub(n) + d)
+			s := n.Add(-d).Truncate(e).Add(e + d).Sub(n)
+			time.Sleep(s)
 			r <- struct{}{}
 		}
 	}()

@@ -9,6 +9,6 @@ def cron(e: int, d: int) -> typing.Generator[None, None, None]:
     assert d < e
     while True:
         n = int(time.time())
-        s = e + d - n % e
+        s = e - (n - d) % e
         time.sleep(s)
         yield
