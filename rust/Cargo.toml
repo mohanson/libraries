@@ -1,11 +1,6 @@
-[workspace]
-resolver = "3"
-members = [
-    "balloc",
-]
-
-[workspace.package]
-version = "1.0.0"
-license = "MIT"
+[package]
+name = "libraries"
+version = "0.1.0"
 edition = "2024"
-authors = ["Mohanson"]
+
+[dependencies]
