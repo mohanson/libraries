@@ -40,10 +40,11 @@ class Func:
         self.q.put(0)
         self.w.add(1)
 
-    def __call__(self, *args, **kwargs) -> None:
-        self.f(*args, **kwargs)
+    def __call__(self, *args, **kwargs) -> typing.Any:
+        rets = self.f(*args, **kwargs)
         self.q.get()
         self.w.done()
+        return rets
 
 
 class Gool:
