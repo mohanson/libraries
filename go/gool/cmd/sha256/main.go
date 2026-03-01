@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand/v2"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/mohanson/libraries/go/gool"
@@ -49,19 +50,17 @@ func mainGool() int {
 	time.AfterFunc(time.Second, func() {
 		done += 1
 	})
-	cnts := 0
+	cnts := int64(0)
 	grun := gool.Cpu()
 	for done != 1 {
 		grun.Call(func() {
 			once()
-			grun.Lock(func() {
-				cnts += 1
-			})
+			atomic.AddInt64(&cnts, 1)
 		})
 	}
 	grun.Wait()
 	rate := cnts * 1024
-	return rate
+	return int(rate)
 }
 
 func main() {
