@@ -46,13 +46,13 @@ func mainLoop() int {
 }
 
 func mainGool() int {
-	done := 0
+	done := int64(0)
 	time.AfterFunc(time.Second, func() {
-		done += 1
+		atomic.AddInt64(&done, 1)
 	})
 	cnts := int64(0)
 	grun := gool.Cpu()
-	for done != 1 {
+	for atomic.LoadInt64(&done) != 1 {
 		grun.Call(func() {
 			once()
 			atomic.AddInt64(&cnts, 1)
