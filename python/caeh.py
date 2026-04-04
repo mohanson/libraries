@@ -8,8 +8,7 @@ def wrap(func: typing.Callable) -> typing.Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            return func(*args, **kwargs)
+            func(*args, **kwargs)
         except Exception:
             traceback.print_exc()
-            return None
     return wrapper
