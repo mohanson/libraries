@@ -1,4 +1,4 @@
-use libraries::balloc::{Algorithm, Allocator, FREE_LIST, MAX_ORDER, MAX_TOTAL};
+use balloc::{Algorithm, Allocator, FREE_LIST, MAX_ORDER, MAX_TOTAL};
 use std::alloc::{GlobalAlloc, Layout};
 
 static mut RANDSEED: u64 = 0;
