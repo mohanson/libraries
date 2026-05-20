@@ -7,5 +7,9 @@ name = "balloc"
 version = "0.1.0"
 
 [[package]]
+name = "rand"
+version = "0.1.0"
+
+[[package]]
 name = "unroll"
 version = "0.1.0"
