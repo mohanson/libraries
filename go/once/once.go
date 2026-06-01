@@ -1,18 +1,21 @@
-// Package once provides concurrency-safe lazy initialization helpers.
+// Package once provides a generic once type. It allows you to lazily initialize a variable in a concurrently safe way.
 package once
 
 import (
 	"sync"
 )
 
-// OnceNew wraps an initialization function and guarantees it is called at most once.
+// Once is a wrapper around an initialization function, ensuring it happens only once, even in a concurrent environment.
 type OnceNew[T any] struct {
+	// The initialization function to create the object of type T.
 	init func() T
+	// The initialized object of type T.
 	inst T
+	// A mutex that ensures the initialization only happens once.
 	once sync.Once
 }
 
-// Do returns the value produced by the initialization function, calling it on the first invocation.
+// Do returns the initialized object, creating it if necessary.
 func (s *OnceNew[T]) Do() T {
 	s.once.Do(func() {
 		s.inst = s.init()
@@ -20,26 +23,29 @@ func (s *OnceNew[T]) Do() T {
 	return s.inst
 }
 
-// NewOnceNew returns an OnceNew that will call f to initialize its value on first use.
+// NewOnceNew creates a new OnceNew wrapper around an initialization function.
 func NewOnceNew[T any](f func() T) *OnceNew[T] {
-	return &OnceNew[T]{init: f}
+	return &OnceNew[T]{
+		init: f,
+		once: sync.Once{},
+	}
 }
 
-// OnceErr stores the first non-nil error written to it and signals all waiters via a channel.
+// OnceErr is an object that will only store an error once.
 type OnceErr struct {
-	mux sync.Mutex
+	mux *sync.Mutex // Guards following
 	err error
 	sig chan struct{}
 }
 
-// Get returns the stored error, or nil if no error has been set.
+// Get an error from OnceErr.
 func (e *OnceErr) Get() error {
 	e.mux.Lock()
 	defer e.mux.Unlock()
 	return e.err
 }
 
-// Put stores err if no error has been stored yet, then closes the signal channel.
+// Put an error into OnceErr.
 func (e *OnceErr) Put(err error) {
 	e.mux.Lock()
 	defer e.mux.Unlock()
@@ -50,12 +56,16 @@ func (e *OnceErr) Put(err error) {
 	close(e.sig)
 }
 
-// Sig returns a channel that is closed when the first error is stored.
+// When any error puts, the sig will be sent.
 func (e *OnceErr) Sig() <-chan struct{} {
 	return e.sig
 }
 
-// NewOnceErr returns a new OnceErr.
+// NewOnceErr creates a new OnceErr.
 func NewOnceErr() *OnceErr {
-	return &OnceErr{sig: make(chan struct{})}
+	return &OnceErr{
+		mux: &sync.Mutex{},
+		err: nil,
+		sig: make(chan struct{}),
+	}
 }
