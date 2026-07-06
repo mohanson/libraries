@@ -35,5 +35,6 @@ func GetPass(prompt string) string {
 	sttyEchoNo()
 	fmt.Scanln(&pass)
 	sttyEchoOn()
+	fmt.Println()
 	return pass
 }
