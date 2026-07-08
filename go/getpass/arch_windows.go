@@ -2,6 +2,7 @@ package getpass
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"syscall"
 	"unsafe"
@@ -13,28 +14,17 @@ var (
 	procSetConsoleMode = kernel32.NewProc("SetConsoleMode")
 )
 
-func sttyEchoNo() {
-	handle := os.Stdin.Fd()
-	mode := uint32(0)
-	procGetConsoleMode.Call(handle, uintptr(unsafe.Pointer(&mode)))
-	mode &= 0xfffffffb
-	procSetConsoleMode.Call(handle, uintptr(mode))
-}
-
-func sttyEchoOn() {
-	handle := os.Stdin.Fd()
-	mode := uint32(0)
-	procGetConsoleMode.Call(handle, uintptr(unsafe.Pointer(&mode)))
-	mode |= 0x00000004
-	procSetConsoleMode.Call(handle, uintptr(mode))
-}
-
 func GetPass(prompt string) string {
-	pass := ""
-	fmt.Print(prompt)
-	sttyEchoNo()
-	fmt.Scanln(&pass)
-	sttyEchoOn()
+	log.Println("getpass: " + prompt)
+	fd := os.Stdin.Fd()
+	mode := uint32(0)
+	procGetConsoleMode.Call(fd, uintptr(unsafe.Pointer(&mode)))
+	back := mode
+	mode &^= 0x00000004
+	procSetConsoleMode.Call(fd, uintptr(mode))
+	secrets := ""
+	fmt.Scanln(&secrets)
+	procSetConsoleMode.Call(fd, uintptr(back))
 	fmt.Println()
-	return pass
+	return secrets
 }
