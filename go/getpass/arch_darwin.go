@@ -3,23 +3,24 @@ package getpass
 import (
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"syscall"
 	"unsafe"
 )
 
 func GetPass(prompt string) string {
-	log.Println("getpass: " + prompt)
+	log.Println("getpass: " + prompt + string([]byte{0x1b, 0x37}))
+	log.Writer().Write([]byte{0x1b, 0x38})
 	termios := syscall.Termios{}
 	fd := os.Stdout.Fd()
 	syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TIOCGETA), uintptr(unsafe.Pointer(&termios)))
-	oldflag := termios.Lflag
-	termios.Lflag &^= syscall.ECHO
+	termios.Lflag &= syscall.ECHO ^ math.MaxUint32
 	syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TIOCSETA), uintptr(unsafe.Pointer(&termios)))
 	secrets := ""
 	fmt.Scanln(&secrets)
-	termios.Lflag = oldflag
-	syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TIOCSETA), uintptr(unsafe.Pointer(&termios)))
 	fmt.Println()
+	termios.Lflag |= syscall.ECHO
+	syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TIOCSETA), uintptr(unsafe.Pointer(&termios)))
 	return secrets
 }
