@@ -2,12 +2,13 @@
 package pretty
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"slices"
 	"strings"
+
+	"github.com/mohanson/libraries/go/lognoln"
 )
 
 // Progress represents a progress bar in the terminal.
@@ -52,10 +53,7 @@ func (p *Progress) Print(percent float64) {
 	buf[48] = num[0]
 	buf[49] = num[1]
 	buf[50] = num[2]
-
-	w := new(bytes.Buffer)
-	log.New(w, "", log.Flags()).Println("pretty:", string(buf))
-	log.Default().Writer().Write(w.Bytes()[:len(w.Bytes())-1])
+	lognoln.Print("pretty:", string(buf))
 }
 
 // NewProgress creates a new Progress instance.

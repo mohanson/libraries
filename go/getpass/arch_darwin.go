@@ -6,10 +6,12 @@ import (
 	"os"
 	"syscall"
 	"unsafe"
+
+	"github.com/mohanson/libraries/go/lognoln"
 )
 
 func GetPass(prompt string) string {
-	lognoln("getpass: " + prompt)
+	lognoln.Print("getpass: " + prompt)
 	termios := syscall.Termios{}
 	fd := os.Stdout.Fd()
 	syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TIOCGETA), uintptr(unsafe.Pointer(&termios)))

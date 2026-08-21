@@ -6,6 +6,8 @@ import (
 	"os"
 	"syscall"
 	"unsafe"
+
+	"github.com/mohanson/libraries/go/lognoln"
 )
 
 var (
@@ -15,7 +17,7 @@ var (
 )
 
 func GetPass(prompt string) string {
-	lognoln("getpass: " + prompt)
+	lognoln.Print("getpass: " + prompt)
 	fd := os.Stdin.Fd()
 	mode := uint32(0)
 	procGetConsoleMode.Call(fd, uintptr(unsafe.Pointer(&mode)))
