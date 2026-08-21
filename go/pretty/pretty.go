@@ -31,7 +31,6 @@ func (p *Progress) Print(percent float64) {
 	}
 	if percent == 1 && percent == p.current {
 		// No need to update if already at 100%.
-		log.Default().Writer().Write([]byte("\n"))
 		return
 	}
 	if percent == 0 && p.chardev {
@@ -54,6 +53,9 @@ func (p *Progress) Print(percent float64) {
 	buf[49] = num[1]
 	buf[50] = num[2]
 	lognoln.Print("pretty:", string(buf))
+	if percent == 1 {
+		log.Default().Writer().Write([]byte{'\n'})
+	}
 }
 
 // NewProgress creates a new Progress instance.
