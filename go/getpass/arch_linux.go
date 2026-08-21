@@ -2,7 +2,6 @@ package getpass
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"syscall"
@@ -10,8 +9,7 @@ import (
 )
 
 func GetPass(prompt string) string {
-	log.Println("getpass: " + prompt + string([]byte{0x1b, 0x37}))
-	log.Writer().Write([]byte{0x1b, 0x38})
+	lognoln("getpass: " + prompt)
 	termios := syscall.Termios{}
 	fd := os.Stdout.Fd()
 	syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TCGETS), uintptr(unsafe.Pointer(&termios)))

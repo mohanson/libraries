@@ -2,6 +2,7 @@
 package pretty
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -29,6 +30,7 @@ func (p *Progress) Print(percent float64) {
 	}
 	if percent == 1 && percent == p.current {
 		// No need to update if already at 100%.
+		log.Default().Writer().Write([]byte("\n"))
 		return
 	}
 	if percent == 0 && p.chardev {
@@ -50,7 +52,10 @@ func (p *Progress) Print(percent float64) {
 	buf[48] = num[0]
 	buf[49] = num[1]
 	buf[50] = num[2]
-	log.Println("pretty:", string(buf))
+
+	w := new(bytes.Buffer)
+	log.New(w, "", log.Flags()).Println("pretty:", string(buf))
+	log.Default().Writer().Write(w.Bytes()[:len(w.Bytes())-1])
 }
 
 // NewProgress creates a new Progress instance.

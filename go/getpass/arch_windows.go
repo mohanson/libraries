@@ -2,7 +2,6 @@ package getpass
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"syscall"
@@ -16,8 +15,7 @@ var (
 )
 
 func GetPass(prompt string) string {
-	log.Println("getpass: " + prompt + string([]byte{0x1b, 0x37}))
-	log.Writer().Write([]byte{0x1b, 0x38})
+	lognoln("getpass: " + prompt)
 	fd := os.Stdin.Fd()
 	mode := uint32(0)
 	procGetConsoleMode.Call(fd, uintptr(unsafe.Pointer(&mode)))
