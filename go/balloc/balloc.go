@@ -136,7 +136,9 @@ func (b *Allocator) Alloc(size int) []byte {
 		log.Println("balloc: out of memory")
 		return make([]byte, size)
 	}
-	return b.Inner.PreAlloc[block.Offset : block.Offset+size]
+	// Return a slice of the pre-allocated memory corresponding to the allocated block. The slice has both length and
+	// capacity set to the requested size.
+	return b.Inner.PreAlloc[block.Offset : block.Offset+size : block.Offset+size]
 }
 
 // Avail returns the total available memory in the pool. This method is thread-safe.
