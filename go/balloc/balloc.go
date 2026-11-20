@@ -128,6 +128,10 @@ type Allocator struct {
 // Alloc allocates a byte slice of the requested size from the memory pool. If the pool is exhausted, it falls back to
 // heap allocation. This method is thread-safe.
 func (b *Allocator) Alloc(size int) []byte {
+	// A zero-sized request returns an empty slice without consuming pool memory.
+	if size == 0 {
+		return []byte{}
+	}
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
 	order := log2(b.Inner.MinBlock, max(b.Inner.MinBlock, npo2(size)))
@@ -152,6 +156,10 @@ func (b *Allocator) Avail() int {
 // Allocator's Alloc method. If the slice is not from this pool (e.g., heap-allocated fallback), it's safely ignored.
 // This method is thread-safe.
 func (b *Allocator) Close(data []byte) {
+	// If the data slice is empty, there's nothing to return to the pool.
+	if len(data) == 0 {
+		return
+	}
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
 	blockOffset := int(uintptr(unsafe.Pointer(&data[0])) - uintptr(unsafe.Pointer(&b.Inner.PreAlloc[0])))
