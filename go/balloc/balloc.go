@@ -191,10 +191,14 @@ func npo2(n int) int {
 }
 
 // New creates a new buddy allocator with the specified parameters. Parameter minBlock is the minimum allocation unit
-// size (must be a power of 2). Parameter maxTotal is the total memory pool size (must be a power of 2).
+// size (must be a power of 2 and at least the size of an int). Parameter maxTotal is the total memory pool size
+// (must be a power of 2).
 func New(minBlock int, maxTotal int) *Allocator {
 	if !isp2(minBlock) {
 		log.Panicln("balloc: max block is not a power of 2")
+	}
+	if minBlock < 64 {
+		log.Panicln("balloc: min block is smaller than 64")
 	}
 	if !isp2(maxTotal) {
 		log.Panicln("balloc: max total is not a power of 2")
